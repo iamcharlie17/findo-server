@@ -32,6 +32,17 @@ const client = new MongoClient(uri, {
 });
 async function run() {
   try {
+    const productCollection = client.db('FindoDB').collection('products');
+
+    app.get('/products', async(req, res)=>{
+        const {search} = req.query;
+        let query = {};
+        if (search) {
+            query = { productName: { $regex: search, $options: "i" } };
+          }
+        const result = await productCollection.find(query).toArray();
+        res.send(result);
+    })
     
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
