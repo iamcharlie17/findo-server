@@ -51,19 +51,34 @@ async function run() {
         filter,
       } = req.query;
 
-      
-      let filterByBrands = {}
-      if(brands) {
+      let filterByBrands = {};
+      if (brands) {
         filterByBrands = {
-            brand: {$in: brands}
+          brand: { $in: brands },
+        };
+      }
+
+      let filterByCategories = {};
+      if (categories) {
+        filterByCategories = {
+          category: { $in: categories },
+        };
+      }
+
+      let filterQuery = {};
+      if(brands || categories){
+        filterQuery = {
+            ...(brands? {brand: {$in: brands}} : {}),
+            ...(categories? {category: {$in: categories}}: {})
         }
       }
 
-      let filterByCategories = {}
-      if(categories){
-        filterByCategories = {
-            category: {$in: categories}
-        }
+      let priceFilter = {};
+      if (parseInt(minPrice)) {
+        priceFilter.price = { $gte: parseInt(minPrice) };
+      }
+      if (parseInt(maxPrice)) {
+        priceFilter.price = { ...priceFilter.price, $lte: parseInt(maxPrice) };
       }
 
       let query = {};
@@ -82,7 +97,11 @@ async function run() {
 
       try {
         const result = await productCollection
-          .find({ ...query, ...filterByBrands, ...filterByCategories})
+          .find({
+            ...query,
+            ...filterQuery,
+            ...priceFilter,
+          })
           .sort(sortOptions)
           .skip((parseInt(page) - 1) * parseInt(size))
           .limit(parseInt(size))
