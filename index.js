@@ -32,8 +32,14 @@ async function run() {
   try {
     const productCollection = client.db("FindoDB").collection("products");
 
+    //count products
+    app.get("/count-products", async(req, res) => {
+        const result = await productCollection.find().toArray()
+        res.send({length : result?.length});
+    })
+
     app.get("/products", async (req, res) => {
-      const { search, sort } = req.query;
+      const { search, sort, page, size } = req.query;
       let query = {};
       if (search) {
         query = { productName: { $regex: search, $options: "i" } };
@@ -47,7 +53,12 @@ async function run() {
       } else if (sort === "createdAt") {
         sortOptions = { createdAt: -1 };
       }
-      const result = await productCollection.find(query).sort(sortOptions).toArray();
+      const result = await productCollection
+      .find(query)
+      .sort(sortOptions)
+      .skip((parseInt(page)-1) * parseInt(size))
+      .limit(parseInt(size))
+      .toArray();
       res.send(result);
     });
 
