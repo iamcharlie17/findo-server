@@ -33,13 +33,39 @@ async function run() {
     const productCollection = client.db("FindoDB").collection("products");
 
     //count products
-    app.get("/count-products", async(req, res) => {
-        const result = await productCollection.find().toArray()
-        res.send({length : result?.length});
-    })
+    app.get("/count-products", async (req, res) => {
+      const result = await productCollection.find().toArray();
+      res.send({ length: result?.length });
+    });
 
     app.get("/products", async (req, res) => {
-      const { search, sort, page, size } = req.query;
+      const {
+        search,
+        sort,
+        page,
+        size,
+        brands,
+        categories,
+        minPrice,
+        maxPrice,
+        filter,
+      } = req.query;
+
+      
+      let filterByBrands = {}
+      if(brands) {
+        filterByBrands = {
+            brand: {$in: brands}
+        }
+      }
+
+      let filterByCategories = {}
+      if(categories){
+        filterByCategories = {
+            category: {$in: categories}
+        }
+      }
+
       let query = {};
       if (search) {
         query = { productName: { $regex: search, $options: "i" } };
@@ -50,16 +76,21 @@ async function run() {
         sortOptions = { price: 1 };
       } else if (sort === "priceDsc") {
         sortOptions = { price: -1 };
-      } else if (sort === "createdAt") {
+      } else if (sort === "newest") {
         sortOptions = { createdAt: -1 };
       }
-      const result = await productCollection
-      .find(query)
-      .sort(sortOptions)
-      .skip((parseInt(page)-1) * parseInt(size))
-      .limit(parseInt(size))
-      .toArray();
-      res.send(result);
+
+      try {
+        const result = await productCollection
+          .find({ ...query, ...filterByBrands, ...filterByCategories})
+          .sort(sortOptions)
+          .skip((parseInt(page) - 1) * parseInt(size))
+          .limit(parseInt(size))
+          .toArray();
+        res.send(result);
+      } catch (error) {
+        console.log("error from catch:", error.message);
+      }
     });
 
     console.log(
