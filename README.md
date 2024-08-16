@@ -1,4 +1,4 @@
-# Findo: A Full-Featured E-commerce App
+# Findo
 
 This is the README file for Findo, a single-page application built with the MERN stack (MongoDB, Express.js, React.js, Node.js). Findo empowers users to:
 
