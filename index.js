@@ -10,7 +10,7 @@ const app = express();
 //middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: ["http://localhost:5173", "http://localhost:5174", "https://findo-client.web.app"],
     credentials: true,
     optionSuccessStatus: 200,
   })
